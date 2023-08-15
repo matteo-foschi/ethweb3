@@ -1,0 +1,24 @@
+{% extends 'app/base.html' %}
+{% block content %}
+
+    <header>
+        <p class="h3">Compile the form below with the information requested:</p>
+        <div class="text-center">
+            <img src=".static/css/images/ricev.png" class="rounded">
+          </div>
+        <p class="lead">Reply to our survery and receive dicretly on your Metamask wallet our Token to spend in our shop.</p>
+        </header>
+    </header>
+
+    <h3>Take Token</h3>
+     <form method="POST" class="order-form">{% csrf_token %}
+         {{ form.as_p }}
+         <button type="submit" class="btn btn-primary btn-lg">Save</button>
+         <br>
+         <br>
+         <a href="{% url 'homePage' %}"><button type="button" class="btn btn-primary btn-lg">Home Page</button></a>
+         <a href="{% url 'logout' %}"><button type="button" class="btn btn-primary btn-lg">Log out</button></a>
+     </form>
+
+{% endblock %}
+</html>
