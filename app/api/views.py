@@ -2,6 +2,10 @@ from django.shortcuts import render, redirect
 from web3 import Web3
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import requests
 import json
 
@@ -19,12 +23,8 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 
 # GOERLI Test Wallet where the ERC20 Token was deployed
-wallet = "0x2F34362E3E74b4693610C231378e4C124562faA1"
-print(wallet)
-
+wallet = "0x3eDb1E13ae5D632a555128E57052B7662106DEa6"
 private_key = os.getenv("PRIVATE_KEY")
-
-print(private_key)
 
 # GOERLI Infura test net
 w3 = Web3(
@@ -54,8 +54,8 @@ def tokenReward(request):
             newSurvey.receipt = form.cleaned_data.get("receipt")
             newSurvey.receiptAmount = form.cleaned_data.get("receiptAmount")
 
-            amount = int(form.cleaned_data.get("receiptAmount"))
-            ptkAmount = int(amount * 0.1 * 1000000000000000000)
+            amount = int(form.cleaned_data.get("receiptAmount")) * 0.1
+            ptkAmount = int(amount * 1000000000000000000)
             print(amount)
             print(ptkAmount)
 
@@ -65,19 +65,22 @@ def tokenReward(request):
             # From Metamask found the adress of the Wallet
             address = request.user.get_username()
             print(address)
+
             # Create the transaction:
             transaction = contractInstance.functions.transfer(
-                address, amount
+                address, ptkAmount
             ).build_transaction(
                 {
                     "chainId": chain_id,
                     "nonce": nonce,
-                    "gas": 200,
+                    "gasLimit": 10000,
                     "gasPrice": w3.eth.gas_price,
                 }
             )
             # Sign the transaction
-            signed_txn = w3.eth.account.sign_transaction(transaction, private_key)
+            signed_txn = w3.eth.account.sign_transaction(
+                transaction, private_key=private_key
+            )
             # Send the transaction
             tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
             # Wait for the transaction to be mined, and get the transaction receipt
