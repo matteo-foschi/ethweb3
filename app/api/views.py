@@ -20,17 +20,23 @@ from django.contrib import messages
 
 # GOERLI Test Wallet where the ERC20 Token was deployed
 wallet = "0x2F34362E3E74b4693610C231378e4C124562faA1"
+print(wallet)
+
 private_key = os.getenv("PRIVATE_KEY")
 
-# GOERLI Infuria test net
-infura_url = "https://goerli.infura.io/v3/ca8d7422b9de421bb11a1dd384b64102"
-web3 = Web3(Web3.HTTPProvider(infura_url))
+print(private_key)
+
+# GOERLI Infura test net
+w3 = Web3(
+    Web3.HTTPProvider("https://goerli.infura.io/v3/ca8d7422b9de421bb11a1dd384b64102")
+)
+chain_id = 5
 
 # Smart Contract Data
 abi = '[{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"requestedDecrease","type":"uint256"}],"name":"decreaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"symbol","type":"string"},{"internalType":"uint256","name":"initialSupply","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"currentAllowance","type":"uint256"},{"internalType":"uint256","name":"requestedDecrease","type":"uint256"}],"name":"ERC20FailedDecreaseAllowance","type":"error"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"allowance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"ERC20InsufficientAllowance","type":"error"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"uint256","name":"balance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"ERC20InsufficientBalance","type":"error"},{"inputs":[{"internalType":"address","name":"approver","type":"address"}],"name":"ERC20InvalidApprover","type":"error"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC20InvalidReceiver","type":"error"},{"inputs":[{"internalType":"address","name":"sender","type":"address"}],"name":"ERC20InvalidSender","type":"error"},{"inputs":[{"internalType":"address","name":"spender","type":"address"}],"name":"ERC20InvalidSpender","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"addedValue","type":"uint256"}],"name":"increaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]'
 
-contractAddress = "0x74732274e354699Da31803430E631A54E049288A"
-contract_instance = web3.eth.contract(address=contractAddress, abi=abi)
+contractAddress = "0xd0E7330A453fA1B0AE0E077C531525347AE91218"
+contractInstance = w3.eth.contract(address=contractAddress, abi=abi)
 
 
 def homePage(request):
@@ -48,29 +54,35 @@ def tokenReward(request):
             newSurvey.receipt = form.cleaned_data.get("receipt")
             newSurvey.receiptAmount = form.cleaned_data.get("receiptAmount")
 
+            amount = int(form.cleaned_data.get("receiptAmount"))
+            ptkAmount = int(amount * 0.1 * 1000000000000000000)
+            print(amount)
+            print(ptkAmount)
+
             # Procedure with lib. web3 to send the Token to the user that compiled the form
-            nonce = web3.eth.get_transaction_count(wallet)
+            nonce = w3.eth.get_transaction_count(wallet)
 
             # From Metamask found the adress of the Wallet
             address = request.user.get_username()
-
+            print(address)
             # Create the transaction:
-            transaction = contract_instance.functions.transfer(
-                address, 100 * form.cleaned_data.get("receiptAmount")
-            ).buildTransaction(
+            transaction = contractInstance.functions.transfer(
+                address, amount
+            ).build_transaction(
                 {
+                    "chainId": chain_id,
                     "nonce": nonce,
-                    "gas": 2000000,
-                    "gasPrice": web3.eth.gasPrice,
+                    "gas": 200,
+                    "gasPrice": w3.eth.gas_price,
                 }
             )
             # Sign the transaction
-            signed_txn = web3.eth.account.sign_transaction(transaction, private_key)
+            signed_txn = w3.eth.account.sign_transaction(transaction, private_key)
             # Send the transaction
-            tx_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+            tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
             # Wait for the transaction to be mined, and get the transaction receipt
             print("Waiting for transaction to finish...")
-            tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=600)
+            tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=600)
             print(f"Done! Contract deployed to {tx_receipt.contractAddress}")
 
             newSurvey.save()
