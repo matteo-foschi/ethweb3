@@ -31,3 +31,6 @@ $RECYCLE.BIN/
 .vscode/
 .history/
 *.code-workspace
+
+#test folder Tomken
+test_tk2.py
