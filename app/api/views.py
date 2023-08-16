@@ -257,16 +257,14 @@ def tokenReward(request):
             newSurvey.receipt = form.cleaned_data.get("receipt")
             newSurvey.receiptAmount = form.cleaned_data.get("receiptAmount")
 
-            amount = int(form.cleaned_data.get("receiptAmount")) * 0.1
-            ptkAmount = int(amount * 1000000000000000000)
-            print(amount)
+            ptkAmount = (
+                int(form.cleaned_data.get("receiptAmount") / 10) * 1000000000000000000
+            )
             print(ptkAmount)
 
             # Procedure with lib. web3 to send the Token to the user that compiled the form
-
             # From Metamask found the adress of the Wallet
             receiver_address = request.user.get_username()
-            print(receiver_address)
 
             # Create the transaction:
             raw_txn = {
@@ -276,7 +274,7 @@ def tokenReward(request):
                 "to": contract_address,
                 "value": "0x0",
                 "data": contract.encodeABI(
-                    "transfer", args=(receiver_address, 1000000000000000000)
+                    "transfer", args=(receiver_address, ptkAmount)
                 ),
                 "nonce": web3.eth.get_transaction_count(my_account),
             }
