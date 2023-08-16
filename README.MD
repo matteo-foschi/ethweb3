@@ -3,8 +3,8 @@ dApp that reward in PTK Token the user that prove the purchase in the shop
 
 ## Project Requests:
 
-- At least one Smart Contract must be created (according to standard or not) that implements events;
-- The code that interacts with the created Smart Contract must be written either in Python;
+- At least one Smart Contract must be created that implements events;
+- The code that interacts with the created Smart Contract must be written in Python;
 - There must be unit tests capable of testing the functioning of what has been created (Truffle).
 
 ## Implemented:
