@@ -240,84 +240,101 @@ token_abi = [
         "type": "function",
     },
 ]
+
+# Smart contract Token address and Istance
 contract_address = "0xd0E7330A453fA1B0AE0E077C531525347AE91218"
 contract = web3.eth.contract(contract_address, abi=token_abi)
 
 
+# View for the Home page
 def homePage(request):
     return render(request, "app/homePage.html")
 
 
+# Procedure for the Token Reward
 def tokenReward(request):
     if request.method == "POST":
         form = SurveyForm(request.POST)
         newSurvey = Survey()
         if form.is_valid():
-            # check in the database if Receipt ID Exists
-
-            client = MongoClient("localhost", 27017)
-            db = client["Receipt"]
-            collection = db["ListReceipt"]
-
-            if (
-                collection.find_one(
-                    {
-                        "Receipt": form.cleaned_data.get("receipt"),
-                        "Amount": form.cleaned_data.get("receiptAmount"),
-                    }
-                )
-                == None
-            ):
+            # Check in the database if Receipt ID was already used to token reward
+            if Survey.objects.filter(receipt=form.cleaned_data.get("receipt")).exists():
                 messages.error(
                     request,
-                    "Recepit or amount is not valid - Plese, re-check the information",
+                    "Receipt already used. You can't you used it anymore.",
                 )
                 form = SurveyForm()
                 return render(request, "app/tokenReward.html", {"form": form})
+
             else:
-                newSurvey.author = request.user
-                newSurvey.date = datetime.now()
-                newSurvey.email = form.cleaned_data.get("email")
-                newSurvey.receipt = form.cleaned_data.get("receipt")
-                newSurvey.receiptAmount = form.cleaned_data.get("receiptAmount")
+                # Access to Mongo DB
+                client = MongoClient("localhost", 27017)
+                db = client["Receipt"]
+                collection = db["ListReceipt"]
+                # Check in the database if Receipt ID exist and the amount is correct
+                if (
+                    collection.find_one(
+                        {
+                            "Receipt": form.cleaned_data.get("receipt"),
+                            "Amount": form.cleaned_data.get("receiptAmount"),
+                        }
+                    )
+                    == None
+                ):
+                    messages.error(
+                        request,
+                        "Recepit or amount is not valid - Plese, re-check the information",
+                    )
+                    form = SurveyForm()
+                    return render(request, "app/tokenReward.html", {"form": form})
+                else:
+                    # If everything it's ok I create a new Survery and the token reward
+                    newSurvey.author = request.user
+                    newSurvey.date = datetime.now()
+                    newSurvey.email = form.cleaned_data.get("email")
+                    newSurvey.receipt = form.cleaned_data.get("receipt")
+                    newSurvey.receiptAmount = form.cleaned_data.get("receiptAmount")
 
-                ptkAmount = (
-                    int(form.cleaned_data.get("receiptAmount") / 10)
-                    * 1000000000000000000
-                )
-                print(ptkAmount)
+                    # Define the reward 1 token PTK for every 10 euros in the receipt amount
+                    ptkAmount = (
+                        int(form.cleaned_data.get("receiptAmount") / 10)
+                        * 1000000000000000000
+                    )
 
-                # Procedure with lib. web3 to send the Token to the user that compiled the form
-                # From Metamask found the adress of the Wallet
-                receiver_address = request.user.get_username()
+                    # Procedure with lib. web3 to send the Token to the user that compiled the form
+                    # From user logged-in with Metamask found the adress of the Wallet
+                    receiver_address = request.user.get_username()
 
-                # Create the transaction:
-                raw_txn = {
-                    "from": my_account,
-                    "gasPrice": web3.eth.gas_price,
-                    "gas": 200000,
-                    "to": contract_address,
-                    "value": "0x0",
-                    "data": contract.encodeABI(
-                        "transfer", args=(receiver_address, ptkAmount)
-                    ),
-                    "nonce": web3.eth.get_transaction_count(my_account),
-                }
-                # Sign the transaction
-                signed_txn = web3.eth.account.sign_transaction(raw_txn, private_key)
-                # Send the transaction
-                tx_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-                # Wait for the transaction to be mined, and get the transaction receipt
-                print("Waiting for transaction to finish...")
-                tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=600)
-                print(f"Done! Contract deployed to {tx_receipt.contractAddress}")
+                    # Create the transaction:
+                    raw_txn = {
+                        "from": my_account,
+                        "gasPrice": web3.eth.gas_price,
+                        "gas": 200000,
+                        "to": contract_address,
+                        "value": "0x0",
+                        "data": contract.encodeABI(
+                            "transfer", args=(receiver_address, ptkAmount)
+                        ),
+                        "nonce": web3.eth.get_transaction_count(my_account),
+                    }
+                    # Sign the transaction
+                    signed_txn = web3.eth.account.sign_transaction(raw_txn, private_key)
+                    # Send the transaction
+                    tx_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+                    # Wait for the transaction to be mined, and get the transaction receipt
+                    print("Waiting for transaction to finish...")
+                    tx_receipt = web3.eth.wait_for_transaction_receipt(
+                        tx_hash, timeout=600
+                    )
+                    print(f"Done! Contract deployed")
 
-                newSurvey.save()
-                messages.success(
-                    request,
-                    "Your token request is correctly received - Tokens are now on your wallet - You could insert a new request or Logout.",
-                )
-                return redirect("homePage")
+                    # Procedure complete. I can save the survery and confirm in HomePage the token reward.
+                    newSurvey.save()
+                    messages.success(
+                        request,
+                        "Your token request is correctly received - Tokens are now on your wallet - You could insert a new request or Logout.",
+                    )
+                    return redirect("homePage")
         else:
             messages.error(request, "Form is not valid")
             return HttpResponse("Error")
@@ -326,7 +343,7 @@ def tokenReward(request):
     return render(request, "app/tokenReward.html", {"form": form})
 
 
-# MORALIS
+# MORALIS set-up for the log-in with MetaMask
 # MORALIS_APP_ID = "60e99188-4387-46fd-af66-8033ad1a02ba"
 # MORALIS_API_KEY = "iSJtrvy5e5c5KTMpC3Pu2NyI3Y2c7u4HsbtF7IrM97kwCUMtxMYMIaJ44JNXJ1sc"
 

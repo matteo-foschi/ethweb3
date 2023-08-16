@@ -1,0 +1,82 @@
+[
+ {
+  "Receipt": "001-001",
+  "Amount": 31
+ },
+ {
+  "Receipt": "001-002",
+  "Amount": 95
+ },
+ {
+  "Receipt": "001-003",
+  "Amount": 78
+ },
+ {
+  "Receipt": "001-004",
+  "Amount": 46
+ },
+ {
+  "Receipt": "001-005",
+  "Amount": 77
+ },
+ {
+  "Receipt": "001-006",
+  "Amount": 5
+ },
+ {
+  "Receipt": "001-007",
+  "Amount": 69
+ },
+ {
+  "Receipt": "001-008",
+  "Amount": 101
+ },
+ {
+  "Receipt": "001-009",
+  "Amount": 101
+ },
+ {
+  "Receipt": "001-010",
+  "Amount": 68
+ },
+ {
+  "Receipt": "001-011",
+  "Amount": 6
+ },
+ {
+  "Receipt": "001-012",
+  "Amount": 64
+ },
+ {
+  "Receipt": "001-013",
+  "Amount": 120
+ },
+ {
+  "Receipt": "001-014",
+  "Amount": 75
+ },
+ {
+  "Receipt": "001-015",
+  "Amount": 10
+ },
+ {
+  "Receipt": "001-016",
+  "Amount": 42
+ },
+ {
+  "Receipt": "001-017",
+  "Amount": 67
+ },
+ {
+  "Receipt": "001-018",
+  "Amount": 84
+ },
+ {
+  "Receipt": "001-019",
+  "Amount": 59
+ },
+ {
+  "Receipt": "001-020",
+  "Amount": 14
+ }
+]
