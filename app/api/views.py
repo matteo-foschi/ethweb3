@@ -23,20 +23,223 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 
 # GOERLI Test Wallet where the ERC20 Token was deployed
-wallet = "0x3eDb1E13ae5D632a555128E57052B7662106DEa6"
+my_account = "0x3eDb1E13ae5D632a555128E57052B7662106DEa6"
 private_key = os.getenv("PRIVATE_KEY")
 
 # GOERLI Infura test net
-w3 = Web3(
+web3 = Web3(
     Web3.HTTPProvider("https://goerli.infura.io/v3/ca8d7422b9de421bb11a1dd384b64102")
 )
 chain_id = 5
+print(web3.is_connected())
 
 # Smart Contract Data
-abi = '[{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"requestedDecrease","type":"uint256"}],"name":"decreaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"symbol","type":"string"},{"internalType":"uint256","name":"initialSupply","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"currentAllowance","type":"uint256"},{"internalType":"uint256","name":"requestedDecrease","type":"uint256"}],"name":"ERC20FailedDecreaseAllowance","type":"error"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"allowance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"ERC20InsufficientAllowance","type":"error"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"uint256","name":"balance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"ERC20InsufficientBalance","type":"error"},{"inputs":[{"internalType":"address","name":"approver","type":"address"}],"name":"ERC20InvalidApprover","type":"error"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC20InvalidReceiver","type":"error"},{"inputs":[{"internalType":"address","name":"sender","type":"address"}],"name":"ERC20InvalidSender","type":"error"},{"inputs":[{"internalType":"address","name":"spender","type":"address"}],"name":"ERC20InvalidSpender","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"addedValue","type":"uint256"}],"name":"increaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]'
-
-contractAddress = "0xd0E7330A453fA1B0AE0E077C531525347AE91218"
-contractInstance = w3.eth.contract(address=contractAddress, abi=abi)
+token_abi = [
+    {
+        "inputs": [
+            {"internalType": "address", "name": "spender", "type": "address"},
+            {"internalType": "uint256", "name": "value", "type": "uint256"},
+        ],
+        "name": "approve",
+        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "spender", "type": "address"},
+            {"internalType": "uint256", "name": "requestedDecrease", "type": "uint256"},
+        ],
+        "name": "decreaseAllowance",
+        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "inputs": [
+            {"internalType": "string", "name": "name", "type": "string"},
+            {"internalType": "string", "name": "symbol", "type": "string"},
+            {"internalType": "uint256", "name": "initialSupply", "type": "uint256"},
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor",
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "spender", "type": "address"},
+            {"internalType": "uint256", "name": "currentAllowance", "type": "uint256"},
+            {"internalType": "uint256", "name": "requestedDecrease", "type": "uint256"},
+        ],
+        "name": "ERC20FailedDecreaseAllowance",
+        "type": "error",
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "spender", "type": "address"},
+            {"internalType": "uint256", "name": "allowance", "type": "uint256"},
+            {"internalType": "uint256", "name": "needed", "type": "uint256"},
+        ],
+        "name": "ERC20InsufficientAllowance",
+        "type": "error",
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "sender", "type": "address"},
+            {"internalType": "uint256", "name": "balance", "type": "uint256"},
+            {"internalType": "uint256", "name": "needed", "type": "uint256"},
+        ],
+        "name": "ERC20InsufficientBalance",
+        "type": "error",
+    },
+    {
+        "inputs": [{"internalType": "address", "name": "approver", "type": "address"}],
+        "name": "ERC20InvalidApprover",
+        "type": "error",
+    },
+    {
+        "inputs": [{"internalType": "address", "name": "receiver", "type": "address"}],
+        "name": "ERC20InvalidReceiver",
+        "type": "error",
+    },
+    {
+        "inputs": [{"internalType": "address", "name": "sender", "type": "address"}],
+        "name": "ERC20InvalidSender",
+        "type": "error",
+    },
+    {
+        "inputs": [{"internalType": "address", "name": "spender", "type": "address"}],
+        "name": "ERC20InvalidSpender",
+        "type": "error",
+    },
+    {
+        "anonymous": False,
+        "inputs": [
+            {
+                "indexed": True,
+                "internalType": "address",
+                "name": "owner",
+                "type": "address",
+            },
+            {
+                "indexed": True,
+                "internalType": "address",
+                "name": "spender",
+                "type": "address",
+            },
+            {
+                "indexed": False,
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256",
+            },
+        ],
+        "name": "Approval",
+        "type": "event",
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "spender", "type": "address"},
+            {"internalType": "uint256", "name": "addedValue", "type": "uint256"},
+        ],
+        "name": "increaseAllowance",
+        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "to", "type": "address"},
+            {"internalType": "uint256", "name": "value", "type": "uint256"},
+        ],
+        "name": "transfer",
+        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "anonymous": False,
+        "inputs": [
+            {
+                "indexed": True,
+                "internalType": "address",
+                "name": "from",
+                "type": "address",
+            },
+            {
+                "indexed": True,
+                "internalType": "address",
+                "name": "to",
+                "type": "address",
+            },
+            {
+                "indexed": False,
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256",
+            },
+        ],
+        "name": "Transfer",
+        "type": "event",
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "from", "type": "address"},
+            {"internalType": "address", "name": "to", "type": "address"},
+            {"internalType": "uint256", "name": "value", "type": "uint256"},
+        ],
+        "name": "transferFrom",
+        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "owner", "type": "address"},
+            {"internalType": "address", "name": "spender", "type": "address"},
+        ],
+        "name": "allowance",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "stateMutability": "view",
+        "type": "function",
+    },
+    {
+        "inputs": [{"internalType": "address", "name": "account", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "stateMutability": "view",
+        "type": "function",
+    },
+    {
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [{"internalType": "uint8", "name": "", "type": "uint8"}],
+        "stateMutability": "view",
+        "type": "function",
+    },
+    {
+        "inputs": [],
+        "name": "name",
+        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+        "stateMutability": "view",
+        "type": "function",
+    },
+    {
+        "inputs": [],
+        "name": "symbol",
+        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+        "stateMutability": "view",
+        "type": "function",
+    },
+    {
+        "inputs": [],
+        "name": "totalSupply",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "stateMutability": "view",
+        "type": "function",
+    },
+]
+contract_address = "0xd0E7330A453fA1B0AE0E077C531525347AE91218"
+contract = web3.eth.contract(contract_address, abi=token_abi)
 
 
 def homePage(request):
@@ -60,32 +263,30 @@ def tokenReward(request):
             print(ptkAmount)
 
             # Procedure with lib. web3 to send the Token to the user that compiled the form
-            nonce = w3.eth.get_transaction_count(wallet)
 
             # From Metamask found the adress of the Wallet
-            address = request.user.get_username()
-            print(address)
+            receiver_address = request.user.get_username()
+            print(receiver_address)
 
             # Create the transaction:
-            transaction = contractInstance.functions.transfer(
-                address, ptkAmount
-            ).build_transaction(
-                {
-                    "chainId": chain_id,
-                    "nonce": nonce,
-                    "gasLimit": 10000,
-                    "gasPrice": w3.eth.gas_price,
-                }
-            )
+            raw_txn = {
+                "from": my_account,
+                "gasPrice": web3.eth.gas_price,
+                "gas": 200000,
+                "to": contract_address,
+                "value": "0x0",
+                "data": contract.encodeABI(
+                    "transfer", args=(receiver_address, 1000000000000000000)
+                ),
+                "nonce": web3.eth.get_transaction_count(my_account),
+            }
             # Sign the transaction
-            signed_txn = w3.eth.account.sign_transaction(
-                transaction, private_key=private_key
-            )
+            signed_txn = web3.eth.account.sign_transaction(raw_txn, private_key)
             # Send the transaction
-            tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+            tx_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
             # Wait for the transaction to be mined, and get the transaction receipt
             print("Waiting for transaction to finish...")
-            tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=600)
+            tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=600)
             print(f"Done! Contract deployed to {tx_receipt.contractAddress}")
 
             newSurvey.save()
