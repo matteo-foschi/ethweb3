@@ -4,13 +4,18 @@
     <header>
         <p class="h3">Compile the form below with the information requested:</p>
         <div class="text-center">
-            <img src=".static/css/images/ricev.png" class="rounded">
+            <img src="static/css/images/ricev.png" class="rounded">
           </div>
         <p class="lead">Reply to our survery and receive dicretly on your Metamask wallet our Token to spend in our shop.</p>
         </header>
     </header>
 
     <h3>Take Token</h3>
+
+    {% for message in messages %}
+        <p id="messages">{{message}}</p>
+    {% endfor %}
+
      <form method="POST" class="order-form">{% csrf_token %}
          {{ form.as_p }}
          <button type="submit" class="btn btn-primary btn-lg">Save</button>
