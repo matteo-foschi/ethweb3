@@ -9,12 +9,12 @@ dApp that reward in PTK Token the user that prove the purchase in the shop
 
 ## Implemented:
 
-- App created with Django
-- Programming and Deploy ERC-20 Token (PTK) in Goerli Test net (Solidity)
-- Manage the log-in in the app with Moralis and Metamask
-- Manage the token reward with smart contract (lib web3.js) - Reward of 1 token PTK for each 10 euros of purchase in the shop
-- Test the smart contract with Truffle and local block chain Ganache
-- Remix ID to test and deploy smart contract
+- App created with Django framework in Python;
+- Programming and Deploy Smart contrarc ERC-20 Token (PTK) in Goerli Test net (Solidity);
+- Manage the log-in in the Django app with Moralis and Metamask;
+- Manage the token reward with smart contract (lib web3.js) - Reward of 1 token PTK for each 10 euros of purchase in the shop;
+- Test the smart contract with Truffle and local block chain Ganache;
+- Remix ID to test and deploy smart contract on Goerli test network.
 
 ## Deployment
 
@@ -38,6 +38,7 @@ To deploy this project:
 ```bash
   python manage.py runserver
 ```
+- Open a new Database in MongoDB called "Receipt" and a new collection "ListReceipt" and upload the json file /Receipt.json
 
 ## 🛠 Skills
 Django, MongoDB, Python, HTML, CSS, Remix, Ganache, Solidity, Web3, Truffle
